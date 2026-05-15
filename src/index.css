@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0a0a0c;
+  --color-surface-1: rgb(255 255 255 / 0.04);
+  --color-surface-2: rgb(255 255 255 / 0.07);
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-text: #f5f5f7;
+  --color-text-dim: rgb(255 255 255 / 0.55);
+  --color-text-faint: rgb(255 255 255 / 0.35);
+  --color-accent: #14b8a6;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  font-feature-settings: "palt";
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.screen-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 8px 0 18px;
+}
+
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 18px 12px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #f5f5f7;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+
+.input:focus {
+  border-color: rgba(20, 184, 166, 0.5);
+}
+
+.input-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.btn-primary {
+  background: #14b8a6;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-primary:disabled {
+  background: rgba(20, 184, 166, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #f5f5f7;
+  font-size: 12px;
+  padding: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.chip.active {
+  background: rgba(20, 184, 166, 0.2);
+  border-color: #14b8a6;
+  color: #14b8a6;
+}
+
+.qr-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-card-stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.cat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 430px;
+  background: #141416;
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 32px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.toast {
+  position: fixed;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 300;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.phone-shell {
+  width: 100%;
+  max-width: 430px;
+  height: 100%;
+  max-height: 932px;
+  background: #0a0a0c;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 500px) {
+  .qr-app-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050507;
+  }
+
+  .phone-shell {
+    border-radius: 40px;
+    border: 10px solid #1c1c1e;
+    max-height: calc(100vh - 40px);
+    margin: 20px;
+  }
+}

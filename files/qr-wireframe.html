@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>QRアプリ ワイヤーフレーム</title>
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --text: #f5f5f7;
+    --text-dim: rgba(255,255,255,0.55);
+    --text-faint: rgba(255,255,255,0.35);
+    --accent: #3b82f6;
+    --accent-dim: rgba(59,130,246,0.15);
+    --success: #34d399;
+    --danger: #f87171;
+    --orange: #fb923c;
+    --pink: #f472b6;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #050507;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    font-feature-settings: "palt";
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  /* === ページ全体レイアウト === */
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  .page-header {
+    margin-bottom: 28px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* === セクション === */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+
+  /* === フロー図 === */
+  .flow {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 20px;
+    overflow-x: auto;
+  }
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 12px;
+    min-width: 640px;
+  }
+  .flow-row {
+    display: contents;
+  }
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .flow-node:hover, .flow-node.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+  .flow-node-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .flow-node-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  .flow-node.start {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .flow-node.modal {
+    background: rgba(251,146,60,0.1);
+    border-color: rgba(251,146,60,0.3);
+    border-style: dashed;
+  }
+  .flow-arrow {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 14px;
+    line-height: 24px;
+    margin: 4px 0;
+  }
+
+  /* === スマホモックアップ群 === */
+  .mockup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    align-items: start;
+  }
+  .mockup-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .mockup-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .mockup-note {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 12px;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+
+  /* === iPhone モックアップ === */
+  .phone {
+    width: 280px;
+    height: 580px;
+    background: var(--bg);
+    border-radius: 36px;
+    border: 8px solid #1c1c1e;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 22px;
+    background: #1c1c1e;
+    border-radius: 0 0 14px 14px;
+    z-index: 10;
+  }
+  .phone-status {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 5;
+  }
+  .phone-status .signal {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-size: 10px;
+  }
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 16px;
+    scrollbar-width: none;
+  }
+  .phone-content::-webkit-scrollbar { display: none; }
+  .phone-tabbar {
+    height: 64px;
+    border-top: 1px solid var(--border);
+    background: rgba(10,10,12,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 6px 8px 12px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .tab.active { color: var(--accent); }
+  .tab-icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tab-label {
+    font-size: 9px;
+    font-weight: 500;
+  }
+
+  /* === 画面共通要素 === */
+  .screen-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 12px 0 16px;
+  }
+
+  /* === 生成画面 === */
+  .url-input-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .url-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .url-field {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .paste-btn {
+    width: 40px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .generate-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .qr-preview {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .qr-box {
+    width: 140px;
+    height: 140px;
+    background: white;
+    margin: 0 auto 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-size: 10px;
+    background-image:
+      linear-gradient(45deg, #000 25%, transparent 25%),
+      linear-gradient(-45deg, #000 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #000 75%),
+      linear-gradient(-45deg, transparent 75%, #000 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  }
+  .qr-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+  .qr-action-btn {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+    font-size: 10px;
+    color: var(--text);
+    text-align: center;
+  }
+  .qr-action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* === 保存済み画面 === */
+  .toolbar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .toolbar-btn {
+    flex: 1;
+    background: var(--accent-dim);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 8px;
+    padding: 7px;
+    font-size: 11px;
+    color: var(--accent);
+    text-align: center;
+    font-weight: 500;
+  }
+  .search-box {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--surface-1);
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .pinned-section {
+    margin-bottom: 14px;
+  }
+  .section-mini-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pinned-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pinned-scroll::-webkit-scrollbar { display: none; }
+  .pinned-card {
+    flex-shrink: 0;
+    width: 64px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    text-align: center;
+  }
+  .pinned-qr {
+    width: 100%;
+    aspect-ratio: 1;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    background-image:
+      linear-gradient(45deg, #000 25%, transparent 25%),
+      linear-gradient(-45deg, #000 25%, transparent 25%);
+    background-size: 6px 6px;
+  }
+  .pinned-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .qr-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    position: relative;
+  }
+  .qr-card-stripe {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 2px;
+  }
+  .qr-card-thumb {
+    width: 52px;
+    height: 52px;
+    background: white;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background-image:
+      linear-gradient(45deg, #000 25%, transparent 25%),
+      linear-gradient(-45deg, #000 25%, transparent 25%);
+    background-size: 8px 8px;
+  }
+  .qr-card-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .qr-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .qr-card-url {
+    font-size: 10px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .qr-card-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .meta-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    color: var(--text-dim);
+  }
+
+  /* === ボトムシート === */
+  .sheet-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .sheet {
+    background: #18181b;
+    border-radius: 24px 24px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 12px 16px 20px;
+    max-height: 85%;
+    overflow-y: auto;
+  }
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .sheet-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .sheet-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+  }
+  .input-group {
+    margin-bottom: 12px;
+  }
+  .input-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+    display: block;
+  }
+  .input-field {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 12px;
+    color: var(--text);
+    width: 100%;
+  }
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .cat-tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+  }
+  .cat-tile.selected {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+  .cat-tile.add {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-faint);
+  }
+  .cat-icon {
+    font-size: 18px;
+    margin-bottom: 3px;
+  }
+  .cat-name {
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+  .cat-tile.selected .cat-name { color: var(--text); }
+  .save-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* === QR全画面表示 === */
+  .fullscreen-qr {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .fullscreen-qr .qr-box {
+    width: 220px;
+    height: 220px;
+  }
+  .fs-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .fs-url {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .fs-actions {
+    position: absolute;
+    bottom: 32px;
+    left: 24px;
+    right: 24px;
+    display: flex;
+    gap: 8px;
+  }
+  .fs-close {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+  }
+
+  /* === 凡例 === */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* === インタラクションメモ === */
+  .interaction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .interaction-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .interaction-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .interaction-emoji {
+    font-size: 16px;
+  }
+  .interaction-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* SVG アイコン */
+  .icon { display: inline-block; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="page-header">
+    <h1 class="page-title">QRコード管理アプリ — 設計図</h1>
+    <p class="page-sub">画面遷移・ワイヤーフレーム・インタラクション設計を一覧。各モックアップはスマホ実機サイズに近い比率で配置しています。</p>
+  </header>
+
+  <!-- ============ セクション1: 画面遷移図 ============ -->
+  <section class="section">
+    <p class="section-label">01 — Flow</p>
+    <h2 class="section-title">画面遷移フロー</h2>
+    <p class="section-desc">下タブ4画面を中心に、ボトムシート(オレンジ)と全画面モーダル(青枠)で操作を完結させる構成。ページを跨ぐ遷移は最小限。</p>
+
+    <div class="flow">
+      <div class="flow-grid">
+        <!-- 1段目: メインタブ -->
+        <div class="flow-node start">
+          <div class="flow-node-label">① 生成タブ</div>
+          <div class="flow-node-sub">URL→QR</div>
+        </div>
+        <div class="flow-node start">
+          <div class="flow-node-label">② 保存済み</div>
+          <div class="flow-node-sub">一覧+検索</div>
+        </div>
+        <div class="flow-node start">
+          <div class="flow-node-label">③ スキャン</div>
+          <div class="flow-node-sub">カメラ読取</div>
+        </div>
+        <div class="flow-node start">
+          <div class="flow-node-label">④ その他</div>
+          <div class="flow-node-sub">設定/管理</div>
+        </div>
+
+        <!-- 矢印 -->
+        <div class="flow-arrow">↓</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-arrow">↓</div>
+
+        <!-- 2段目: 一次アクション -->
+        <div class="flow-node modal">
+          <div class="flow-node-label">📋 保存シート</div>
+          <div class="flow-node-sub">タイトル+カテゴリ</div>
+        </div>
+        <div class="flow-node modal">
+          <div class="flow-node-label">🔍 QR詳細</div>
+          <div class="flow-node-sub">全画面プレビュー</div>
+        </div>
+        <div class="flow-node modal">
+          <div class="flow-node-label">✅ 結果シート</div>
+          <div class="flow-node-sub">読取URL+保存</div>
+        </div>
+        <div class="flow-node modal">
+          <div class="flow-node-label">📁 カテゴリ管理</div>
+          <div class="flow-node-sub">追加/編集</div>
+        </div>
+
+        <!-- 矢印 -->
+        <div class="flow-arrow">↓</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-arrow">↓</div>
+
+        <!-- 3段目: 二次アクション -->
+        <div class="flow-node modal">
+          <div class="flow-node-label">✨ 保存完了</div>
+          <div class="flow-node-sub">→ ②へ自動遷移</div>
+        </div>
+        <div class="flow-node modal">
+          <div class="flow-node-label">⚙ 編集シート</div>
+          <div class="flow-node-sub">長押し起動</div>
+        </div>
+        <div class="flow-node" style="opacity:0.3"></div>
+        <div class="flow-node modal">
+          <div class="flow-node-label">💾 Import/Export</div>
+          <div class="flow-node-sub">JSONバックアップ</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>メイン画面 (タブ)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,0.4);border:1px dashed rgba(251,146,60,0.6)"></div>ボトムシート / モーダル</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--surface-2)"></div>共通要素</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ セクション2: メイン画面 ============ -->
+  <section class="section">
+    <p class="section-label">02 — Main Screens</p>
+    <h2 class="section-title">メイン画面ワイヤー</h2>
+    <p class="section-desc">下タブで切り替わる4画面。実機の画面比率で配置。</p>
+
+    <div class="mockup-grid">
+
+      <!-- 画面1: 生成 -->
+      <div class="mockup-frame">
+        <div class="mockup-label">① 生成 — Home</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content">
+            <h2 class="screen-title">QR生成</h2>
+            <div class="url-input-card">
+              <div class="url-input">
+                <div class="url-field">URLを入力またはペースト</div>
+                <div class="paste-btn">📋</div>
+              </div>
+              <button class="generate-btn">⊞ 生成</button>
+            </div>
+            <div class="qr-preview">
+              <div class="qr-box"></div>
+              <div class="qr-actions">
+                <div class="qr-action-btn">コピー</div>
+                <div class="qr-action-btn">シェア</div>
+                <div class="qr-action-btn primary">保存</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="tab active">
+              <div class="tab-icon">⊞</div>
+              <div class="tab-label">生成</div>
+            </div>
+            <div class="tab">
+              <div class="tab-icon">🔖</div>
+              <div class="tab-label">保存済み</div>
+            </div>
+            <div class="tab">
+              <div class="tab-icon">⊡</div>
+              <div class="tab-label">スキャン</div>
+            </div>
+            <div class="tab">
+              <div class="tab-icon">⋯</div>
+              <div class="tab-label">その他</div>
+            </div>
+          </div>
+        </div>
+        <p class="mockup-note">URL入力→生成ボタンで即プレビュー。「保存」を押すと下からシートが出てカテゴリ選択へ。</p>
+      </div>
+
+      <!-- 画面2: 保存済み -->
+      <div class="mockup-frame">
+        <div class="mockup-label">② 保存済み — Library</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content">
+            <h2 class="screen-title">保存済み</h2>
+            <div class="toolbar">
+              <div class="toolbar-btn">✓ 選択</div>
+              <div class="toolbar-btn">↓ Import</div>
+              <div class="toolbar-btn">↑ Export</div>
+            </div>
+            <div class="search-box">🔍 名前またはURLで検索</div>
+            <div class="chip-row">
+              <div class="chip active">すべて</div>
+              <div class="chip">仕事</div>
+              <div class="chip">飲食店</div>
+              <div class="chip">趣味</div>
+              <div class="chip">買い物</div>
+              <div class="chip">未分類</div>
+            </div>
+
+            <div class="pinned-section">
+              <div class="section-mini-label">⭐ お気に入り</div>
+              <div class="pinned-scroll">
+                <div class="pinned-card">
+                  <div class="pinned-qr"></div>
+                  <div class="pinned-label">会社HP</div>
+                </div>
+                <div class="pinned-card">
+                  <div class="pinned-qr"></div>
+                  <div class="pinned-label">名刺</div>
+                </div>
+                <div class="pinned-card">
+                  <div class="pinned-qr"></div>
+                  <div class="pinned-label">予約</div>
+                </div>
+                <div class="pinned-card">
+                  <div class="pinned-qr"></div>
+                  <div class="pinned-label">Wi-Fi</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-mini-label">📅 最近</div>
+            <div class="qr-card">
+              <div class="qr-card-stripe" style="background:var(--orange)"></div>
+              <div class="qr-card-thumb"></div>
+              <div class="qr-card-body">
+                <div class="qr-card-title">士業向けSFAデモ</div>
+                <div class="qr-card-url">sfa-legal.vercel.app</div>
+                <div class="qr-card-meta">
+                  <span class="meta-tag">仕事</span>
+                  <span class="meta-tag" style="color:var(--text-faint)">今日</span>
+                </div>
+              </div>
+            </div>
+            <div class="qr-card">
+              <div class="qr-card-stripe" style="background:var(--pink)"></div>
+              <div class="qr-card-thumb"></div>
+              <div class="qr-card-body">
+                <div class="qr-card-title">焼肉トラジ 銀座</div>
+                <div class="qr-card-url">tabelog.com/...</div>
+                <div class="qr-card-meta">
+                  <span class="meta-tag">飲食 / 焼肉</span>
+                </div>
+              </div>
+            </div>
+            <div class="qr-card">
+              <div class="qr-card-stripe" style="background:var(--purple)"></div>
+              <div class="qr-card-thumb"></div>
+              <div class="qr-card-body">
+                <div class="qr-card-title">採用システムデモ</div>
+                <div class="qr-card-url">saiyou-demo0420...</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="tab">
+              <div class="tab-icon">⊞</div>
+              <div class="tab-label">生成</div>
+            </div>
+            <div class="tab active">
+              <div class="tab-icon">🔖</div>
+              <div class="tab-label">保存済み</div>
+            </div>
+            <div class="tab">
+              <div class="tab-icon">⊡</div>
+              <div class="tab-label">スキャン</div>
+            </div>
+            <div class="tab">
+              <div class="tab-icon">⋯</div>
+              <div class="tab-label">その他</div>
+            </div>
+          </div>
+        </div>
+        <p class="mockup-note">お気に入り横スクロール+最近セクション。カードの左端カラーバーでカテゴリ即識別。タップで全画面、長押しでメニュー。</p>
+      </div>
+
+      <!-- 画面3: スキャン -->
+      <div class="mockup-frame">
+        <div class="mockup-label">③ スキャン</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content" style="background:#000; display:flex; flex-direction:column; padding:0;">
+            <div style="padding:0 16px;">
+              <h2 class="screen-title">スキャン</h2>
+            </div>
+            <div style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; padding: 0 16px;">
+              <div style="width:180px; height:180px; border:2px solid rgba(255,255,255,0.3); border-radius:24px; position:relative; margin-bottom:20px;">
+                <div style="position:absolute; top:-2px; left:-2px; width:30px; height:30px; border-top:3px solid var(--accent); border-left:3px solid var(--accent); border-radius:8px 0 0 0;"></div>
+                <div style="position:absolute; top:-2px; right:-2px; width:30px; height:30px; border-top:3px solid var(--accent); border-right:3px solid var(--accent); border-radius:0 8px 0 0;"></div>
+                <div style="position:absolute; bottom:-2px; left:-2px; width:30px; height:30px; border-bottom:3px solid var(--accent); border-left:3px solid var(--accent); border-radius:0 0 0 8px;"></div>
+                <div style="position:absolute; bottom:-2px; right:-2px; width:30px; height:30px; border-bottom:3px solid var(--accent); border-right:3px solid var(--accent); border-radius:0 0 8px 0;"></div>
+              </div>
+              <p style="font-size:11px; color:var(--text-dim); text-align:center; margin:0 0 24px;">カメラでQRコードを読み取ります</p>
+              <button class="generate-btn" style="max-width:200px;">📷 スキャン開始</button>
+            </div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="tab"><div class="tab-icon">⊞</div><div class="tab-label">生成</div></div>
+            <div class="tab"><div class="tab-icon">🔖</div><div class="tab-label">保存済み</div></div>
+            <div class="tab active"><div class="tab-icon">⊡</div><div class="tab-label">スキャン</div></div>
+            <div class="tab"><div class="tab-icon">⋯</div><div class="tab-label">その他</div></div>
+          </div>
+        </div>
+        <p class="mockup-note">読取成功→結果シートが下から表示→「保存」or「ブラウザで開く」を選択。</p>
+      </div>
+
+      <!-- 画面4: その他 -->
+      <div class="mockup-frame">
+        <div class="mockup-label">④ その他 — Settings</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content">
+            <h2 class="screen-title">その他</h2>
+
+            <div class="section-mini-label">カテゴリ</div>
+            <div class="qr-card" style="padding:10px 12px;">
+              <div style="width:32px; height:32px; background:var(--orange); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px;">💼</div>
+              <div class="qr-card-body">
+                <div class="qr-card-title">仕事</div>
+                <div class="qr-card-url">12件</div>
+              </div>
+              <div style="color:var(--text-faint)">›</div>
+            </div>
+            <div class="qr-card" style="padding:10px 12px;">
+              <div style="width:32px; height:32px; background:var(--pink); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px;">🍴</div>
+              <div class="qr-card-body">
+                <div class="qr-card-title">飲食店</div>
+                <div class="qr-card-url">8件 · 4サブカテゴリ</div>
+              </div>
+              <div style="color:var(--text-faint)">›</div>
+            </div>
+            <div class="qr-card" style="padding:10px 12px; border-style:dashed; opacity:0.7;">
+              <div style="width:32px; height:32px; background:var(--surface-2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px;">+</div>
+              <div class="qr-card-body">
+                <div class="qr-card-title" style="color:var(--text-dim)">カテゴリを追加</div>
+              </div>
+            </div>
+
+            <div class="section-mini-label" style="margin-top:16px;">データ</div>
+            <div class="qr-card" style="padding:10px 12px;">
+              <div class="qr-card-body">
+                <div class="qr-card-title">バックアップ (JSON)</div>
+              </div>
+              <div style="color:var(--text-faint)">›</div>
+            </div>
+            <div class="qr-card" style="padding:10px 12px;">
+              <div class="qr-card-body">
+                <div class="qr-card-title">復元</div>
+              </div>
+              <div style="color:var(--text-faint)">›</div>
+            </div>
+
+            <div class="section-mini-label" style="margin-top:16px;">表示</div>
+            <div class="qr-card" style="padding:10px 12px;">
+              <div class="qr-card-body">
+                <div class="qr-card-title">テーマ</div>
+                <div class="qr-card-url">ダーク</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="tab"><div class="tab-icon">⊞</div><div class="tab-label">生成</div></div>
+            <div class="tab"><div class="tab-icon">🔖</div><div class="tab-label">保存済み</div></div>
+            <div class="tab"><div class="tab-icon">⊡</div><div class="tab-label">スキャン</div></div>
+            <div class="tab active"><div class="tab-icon">⋯</div><div class="tab-label">その他</div></div>
+          </div>
+        </div>
+        <p class="mockup-note">カテゴリ管理・バックアップ・テーマ。サブカテゴリも各カテゴリの詳細画面で管理。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ セクション3: モーダル/シート ============ -->
+  <section class="section">
+    <p class="section-label">03 — Sheets & Modals</p>
+    <h2 class="section-title">ボトムシート・全画面モーダル</h2>
+    <p class="section-desc">ページ遷移を避け、下からせり上がるシートで処理を完結。</p>
+
+    <div class="mockup-grid">
+
+      <!-- 保存シート -->
+      <div class="mockup-frame">
+        <div class="mockup-label">💾 保存シート (生成→保存)</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content" style="filter:blur(2px); opacity:0.5;">
+            <h2 class="screen-title">QR生成</h2>
+            <div class="qr-preview">
+              <div class="qr-box"></div>
+            </div>
+          </div>
+          <div class="sheet-overlay">
+            <div class="sheet">
+              <div class="sheet-handle"></div>
+              <h3 class="sheet-title">QRを保存</h3>
+              <p class="sheet-sub">タイトルとカテゴリを設定してください</p>
+
+              <div class="input-group">
+                <label class="input-label">タイトル</label>
+                <input class="input-field" placeholder="例: 焼肉トラジ 銀座" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">メモ (任意)</label>
+                <input class="input-field" placeholder="" />
+              </div>
+
+              <label class="input-label">カテゴリ</label>
+              <div class="category-grid">
+                <div class="cat-tile">
+                  <div class="cat-icon">💼</div>
+                  <div class="cat-name">仕事</div>
+                </div>
+                <div class="cat-tile selected">
+                  <div class="cat-icon">🍴</div>
+                  <div class="cat-name">飲食</div>
+                </div>
+                <div class="cat-tile">
+                  <div class="cat-icon">🎮</div>
+                  <div class="cat-name">趣味</div>
+                </div>
+                <div class="cat-tile">
+                  <div class="cat-icon">🛍</div>
+                  <div class="cat-name">買物</div>
+                </div>
+                <div class="cat-tile">
+                  <div class="cat-icon">✈</div>
+                  <div class="cat-name">旅行</div>
+                </div>
+                <div class="cat-tile">
+                  <div class="cat-icon">📚</div>
+                  <div class="cat-name">学習</div>
+                </div>
+                <div class="cat-tile">
+                  <div class="cat-icon">👤</div>
+                  <div class="cat-name">個人</div>
+                </div>
+                <div class="cat-tile add">
+                  <div class="cat-icon">+</div>
+                  <div class="cat-name">追加</div>
+                </div>
+              </div>
+
+              <label class="input-label">サブカテゴリ (飲食)</label>
+              <div class="chip-row" style="margin-bottom: 16px;">
+                <div class="chip">和食</div>
+                <div class="chip active">焼肉</div>
+                <div class="chip">イタリアン</div>
+                <div class="chip">中華</div>
+                <div class="chip">+ 追加</div>
+              </div>
+
+              <button class="save-btn">保存する</button>
+            </div>
+          </div>
+          <div class="phone-tabbar" style="opacity:0.5;">
+            <div class="tab active"><div class="tab-icon">⊞</div><div class="tab-label">生成</div></div>
+            <div class="tab"><div class="tab-icon">🔖</div><div class="tab-label">保存済み</div></div>
+            <div class="tab"><div class="tab-icon">⊡</div><div class="tab-label">スキャン</div></div>
+            <div class="tab"><div class="tab-icon">⋯</div><div class="tab-label">その他</div></div>
+          </div>
+        </div>
+        <p class="mockup-note">2階層のカテゴリ選択もこの1枚で完結。ハンドル下スワイプで閉じる。</p>
+      </div>
+
+      <!-- QR全画面 -->
+      <div class="mockup-frame">
+        <div class="mockup-label">🔍 QR全画面 (タップ起動)</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="fullscreen-qr">
+            <div class="fs-close">✕</div>
+            <div class="qr-box"></div>
+            <div style="height:20px;"></div>
+            <div class="fs-title">焼肉トラジ 銀座</div>
+            <div class="fs-url">tabelog.com/tokyo/A1301/...</div>
+            <div class="fs-actions">
+              <button class="qr-action-btn" style="padding:12px 4px; font-size:11px;">URLコピー</button>
+              <button class="qr-action-btn" style="padding:12px 4px; font-size:11px;">シェア</button>
+              <button class="qr-action-btn primary" style="padding:12px 4px; font-size:11px;">開く</button>
+            </div>
+          </div>
+        </div>
+        <p class="mockup-note">画面明度を自動MAX化(スキャンされやすく)。共有要素アニメで小QR→中央拡大。</p>
+      </div>
+
+      <!-- 編集シート -->
+      <div class="mockup-frame">
+        <div class="mockup-label">⚙ 編集シート (長押し起動)</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-status">
+            <span>16:35</span>
+            <span class="signal">●●● 100%</span>
+          </div>
+          <div class="phone-content" style="filter:blur(2px); opacity:0.5;">
+            <h2 class="screen-title">保存済み</h2>
+          </div>
+          <div class="sheet-overlay">
+            <div class="sheet" style="max-height:60%;">
+              <div class="sheet-handle"></div>
+              <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px;">
+                <div class="qr-card-thumb"></div>
+                <div>
+                  <div class="qr-card-title">焼肉トラジ 銀座</div>
+                  <div class="qr-card-url">tabelog.com/...</div>
+                </div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="padding:12px; background:var(--surface-1); border-radius:10px 10px 2px 2px; display:flex; align-items:center; gap:10px;"><span style="font-size:16px;">📋</span><span style="font-size:13px;">URLをコピー</span></div>
+                <div style="padding:12px; background:var(--surface-1); border-radius:2px; display:flex; align-items:center; gap:10px;"><span style="font-size:16px;">📤</span><span style="font-size:13px;">シェア</span></div>
+                <div style="padding:12px; background:var(--surface-1); border-radius:2px; display:flex; align-items:center; gap:10px;"><span style="font-size:16px;">⭐</span><span style="font-size:13px;">お気に入りに追加</span></div>
+                <div style="padding:12px; background:var(--surface-1); border-radius:2px; display:flex; align-items:center; gap:10px;"><span style="font-size:16px;">✏</span><span style="font-size:13px;">編集</span></div>
+                <div style="padding:12px; background:var(--surface-1); border-radius:2px 2px 10px 10px; display:flex; align-items:center; gap:10px; color:var(--danger);"><span style="font-size:16px;">🗑</span><span style="font-size:13px;">削除</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="mockup-note">長押し+ハプティックで起動。アクションを1タップで実行。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ セクション4: モーション・インタラクション仕様 ============ -->
+  <section class="section">
+    <p class="section-label">04 — Motion & Haptics</p>
+    <h2 class="section-title">モーション・触感の詳細仕様</h2>
+    <p class="section-desc">"気持ちよさ"を作る具体的な数値。実装時はFramer Motionで再現。</p>
+
+    <div class="interaction-grid">
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">👆</span>ボタンタップ</h4>
+        <p class="interaction-desc">scale: 1 → 0.96, 80ms spring。同時に navigator.vibrate(8)で軽い触感。離した瞬間にbounce復帰。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">📲</span>ボトムシート</h4>
+        <p class="interaction-desc">spring(stiffness:380, damping:32)。背面は0.6sでblur(8px)+暗化60%。ハンドル下スワイプ100pxで閉じる。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">🔍</span>QR全画面化</h4>
+        <p class="interaction-desc">layoutId="qr-{id}"で共有要素アニメ。リストのサムネがそのまま中央に拡大。300ms ease-out。画面明度を自動MAX。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">✨</span>保存成功</h4>
+        <p class="interaction-desc">チェックマークSVGをpath stroke-dasharrayでドロー(400ms)。ハプティック2回(成功パターン)。0.8s後に保存済みタブへ自動遷移。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">📋</span>クリップボード検出</h4>
+        <p class="interaction-desc">アプリ復帰時にURLがあれば上部に「貼り付けますか?」バナーを80msでスライドダウン。3秒後 or 操作で自動消去。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">📜</span>リストアニメ</h4>
+        <p class="interaction-desc">並び替え/フィルタ時はFramer Motionの layout プロパティで自動アニメ。新規追加カードは上から100msスライドイン+フェード。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">⬅</span>スワイプ操作</h4>
+        <p class="interaction-desc">カード右スワイプ:お気に入りトグル(黄)、左スワイプ:削除(赤、確認モーダル)。閾値80pxでハプティック発火。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">🎚</span>タブ切替</h4>
+        <p class="interaction-desc">切替時は内容をopacity 0→1 + y軸 8px→0 で180ms。タブアイコンは選択時のみscale 1.1にbounce。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title"><span class="interaction-emoji">🌀</span>Pull to refresh</h4>
+        <p class="interaction-desc">保存済みリスト上端で下に引くと、独自のQRローディング(角がアニメ)。50px超で発火、リスト最新化。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ セクション5: 検討事項 ============ -->
+  <section class="section">
+    <p class="section-label">05 — Open Questions</p>
+    <h2 class="section-title">確認したい設計判断</h2>
+    <p class="section-desc">プロトタイプ実装前に決めておきたいポイント。</p>
+
+    <div class="interaction-grid">
+      <div class="interaction-card">
+        <h4 class="interaction-title">スキャン機能、入れる?</h4>
+        <p class="interaction-desc">iOS標準カメラで普通のQRは読めるので省略する選択もあり。自作するならhtml5-qrcode等を使用。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title">アクセントカラー</h4>
+        <p class="interaction-desc">現状は青(#3b82f6)。参考アプリと差別化するなら、ティール/グリーン系やオレンジ系も検討余地あり。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title">カテゴリの初期セット</h4>
+        <p class="interaction-desc">仕事/飲食/趣味/買物/旅行/学習/個人/未分類で良いか。実際の使い道に合わせて要調整。</p>
+      </div>
+      <div class="interaction-card">
+        <h4 class="interaction-title">QRデザインのカスタマイズ</h4>
+        <p class="interaction-desc">中央にカテゴリ絵文字を入れる、QRの色を変えられる、等のオプションを入れるか。</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
