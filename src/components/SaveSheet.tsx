@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, type PanInfo } from 'framer-motion';
 import type { QRCode, Category } from '../types';
@@ -32,19 +32,15 @@ export function SaveSheet({
   onAddCategory,
   onAddSubcategory,
 }: SaveSheetProps) {
-  const [title, setTitle] = useState(editingQR?.title ?? '');
+  const [title, setTitle] = useState(
+    () => editingQR?.title ?? (url ? getDomain(url) : ''),
+  );
   const [memo, setMemo] = useState(editingQR?.memo ?? '');
   const [categoryId, setCategoryId] = useState<string | undefined>(editingQR?.categoryId);
   const [subcategory, setSubcategory] = useState<string | undefined>(editingQR?.subcategory);
 
   const parentCategories = categories.filter((c) => !c.parentId);
   const subs = categoryId ? categories.filter((c) => c.parentId === categoryId) : [];
-
-  useEffect(() => {
-    if (!editingQR && url && !title) {
-      setTitle(getDomain(url));
-    }
-  }, [url, editingQR, title]);
 
   const handleSubmit = () => {
     if (!title.trim()) return;
