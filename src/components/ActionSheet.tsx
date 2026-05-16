@@ -1,4 +1,4 @@
-import { Copy, Share2, Star, Edit3, Trash2 } from 'lucide-react';
+import { Copy, Share2, Star, Edit3, Trash2, Maximize2 } from 'lucide-react';
 import { motion, type PanInfo } from 'framer-motion';
 import type { QRCode } from '../types';
 import { QRImage } from './QRImage';
@@ -6,6 +6,7 @@ import { QRImage } from './QRImage';
 interface ActionSheetProps {
   qr: QRCode | null;
   onClose: () => void;
+  onOpenQR: () => void;
   onTogglePin: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -16,6 +17,7 @@ interface ActionSheetProps {
 export function ActionSheet({
   qr,
   onClose,
+  onOpenQR,
   onTogglePin,
   onEdit,
   onDelete,
@@ -25,6 +27,7 @@ export function ActionSheet({
   if (!qr) return null;
 
   const items = [
+    { icon: Maximize2, label: 'QRを表示', onClick: onOpenQR },
     { icon: Copy, label: 'URLをコピー', onClick: onCopy },
     { icon: Share2, label: 'シェア', onClick: onShare },
     {

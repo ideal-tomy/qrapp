@@ -7,9 +7,10 @@ import { haptic, HAPTIC } from '../lib/haptic';
 interface PinnedScrollProps {
   items: QRCode[];
   onSelect: (id: string) => void;
+  onPress?: (id: string) => void;
 }
 
-export function PinnedScroll({ items, onSelect }: PinnedScrollProps) {
+export function PinnedScroll({ items, onSelect, onPress }: PinnedScrollProps) {
   if (items.length === 0) return null;
 
   return (
@@ -24,7 +25,11 @@ export function PinnedScroll({ items, onSelect }: PinnedScrollProps) {
             type="button"
             whileTap={{ scale: 0.94 }}
             onClick={() => {
-              onSelect(q.id);
+              if (onPress) {
+                onPress(q.id);
+              } else {
+                onSelect(q.id);
+              }
               haptic(HAPTIC.light);
             }}
             className="shrink-0 w-20 bg-white/[0.04] border border-white/[0.07] rounded-xl p-1.5 cursor-pointer font-inherit"

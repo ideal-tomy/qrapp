@@ -14,6 +14,7 @@ import {
 import { loadLibraryFilters, saveLibraryFilters } from '../lib/libraryFilters';
 import { QRCard } from '../components/QRCard';
 import { ActionSheet } from '../components/ActionSheet';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 import { FullscreenQR } from '../components/FullscreenQR';
 import { SaveSheet, type SaveData } from '../components/SaveSheet';
 import {
@@ -42,6 +43,7 @@ export function LibraryScreen() {
   const [pendingSubcategory, setPendingSubcategory] = useState<string | undefined>();
   const filtersRestored = useRef(false);
   const [actionSheetId, setActionSheetId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [fullscreenId, setFullscreenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saveSheetOpen, setSaveSheetOpen] = useState(false);
@@ -115,11 +117,24 @@ export function LibraryScreen() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('このQRコードを削除しますか？')) return;
-    await deleteQR(id);
+  const openActionSheet = (id: string) => {
+    setActionSheetId(id);
+    incrementUse(id);
+  };
+
+  const handleDeleteRequest = (id: string) => {
     setActionSheetId(null);
+    setDeleteConfirmId(id);
+    haptic(10);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmId) return;
+    await deleteQR(deleteConfirmId);
+    setDeleteConfirmId(null);
     setFullscreenId(null);
+    setEditingId(null);
+    setSaveSheetOpen(false);
     haptic(15);
     showToast('削除しました');
   };
@@ -189,10 +204,8 @@ export function LibraryScreen() {
         {categoryFilter === 'all' && !searchQuery && (
           <PinnedScroll
             items={pinnedQR}
-            onSelect={(id) => {
-              setFullscreenId(id);
-              incrementUse(id);
-            }}
+            onSelect={(id) => setFullscreenId(id)}
+            onPress={openActionSheet}
           />
         )}
 
@@ -207,11 +220,7 @@ export function LibraryScreen() {
                 key={q.id}
                 qr={q}
                 category={getCategory(q.categoryId)}
-                onOpen={() => {
-                  setFullscreenId(q.id);
-                  incrementUse(q.id);
-                }}
-                onMenu={() => setActionSheetId(q.id)}
+                onPress={() => openActionSheet(q.id)}
               />
             ))}
           </AnimatePresence>
@@ -227,6 +236,10 @@ export function LibraryScreen() {
           <ActionSheet
             qr={actionQR}
             onClose={() => setActionSheetId(null)}
+            onOpenQR={() => {
+              setFullscreenId(actionSheetId);
+              setActionSheetId(null);
+            }}
             onTogglePin={async () => {
               await togglePin(actionSheetId);
               setActionSheetId(null);
@@ -237,7 +250,7 @@ export function LibraryScreen() {
               setActionSheetId(null);
               setSaveSheetOpen(true);
             }}
-            onDelete={() => handleDelete(actionSheetId)}
+            onDelete={() => handleDeleteRequest(actionSheetId)}
             onCopy={async () => {
               await handleCopy(actionQR.url);
               setActionSheetId(null);
@@ -246,6 +259,18 @@ export function LibraryScreen() {
               await handleShare(actionQR.url, actionQR.title);
               setActionSheetId(null);
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <ConfirmSheet
+            message="このQRを削除しますか？"
+            confirmLabel="削除する"
+            danger
+            onConfirm={handleDeleteConfirm}
+            onCancel={() => setDeleteConfirmId(null)}
           />
         )}
       </AnimatePresence>

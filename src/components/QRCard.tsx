@@ -1,4 +1,4 @@
-import { Star, ChevronRight } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { QRCode, Category } from '../types';
 import { QRImage } from './QRImage';
@@ -7,8 +7,7 @@ import { haptic, HAPTIC } from '../lib/haptic';
 interface QRCardProps {
   qr: QRCode;
   category: Category | undefined;
-  onOpen: () => void;
-  onMenu: () => void;
+  onPress: () => void;
 }
 
 function formatCreatedAt(ts: number): string {
@@ -21,7 +20,7 @@ function formatCreatedAt(ts: number): string {
   return `${y}/${m}/${day}`;
 }
 
-export function QRCard({ qr, category, onOpen, onMenu }: QRCardProps) {
+export function QRCard({ qr, category, onPress }: QRCardProps) {
   return (
     <motion.div
       layout
@@ -31,11 +30,9 @@ export function QRCard({ qr, category, onOpen, onMenu }: QRCardProps) {
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
       className="qr-card"
-      onClick={onOpen}
-      onContextMenu={(e: React.MouseEvent) => {
-        e.preventDefault();
-        onMenu();
-        haptic(HAPTIC.medium);
+      onClick={() => {
+        onPress();
+        haptic(HAPTIC.light);
       }}
       whileTap={{ scale: 0.98 }}
     >
@@ -60,18 +57,6 @@ export function QRCard({ qr, category, onOpen, onMenu }: QRCardProps) {
           </span>
         )}
       </div>
-      <motion.button
-        type="button"
-        whileTap={{ scale: 0.9 }}
-        onClick={(e: React.MouseEvent) => {
-          e.stopPropagation();
-          onMenu();
-          haptic(10);
-        }}
-        className="bg-transparent border-0 text-white/40 cursor-pointer p-1"
-      >
-        <ChevronRight size={18} />
-      </motion.button>
     </motion.div>
   );
 }
