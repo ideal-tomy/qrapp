@@ -1,14 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { CategoryChips } from '../components/CategoryChips';
+import { SubcategoryChips } from '../components/SubcategoryChips';
 import { PinnedScroll } from '../components/PinnedScroll';
+import {
+  filterQRCodes,
+  getParentCategories,
+  getSubFilterChips,
+  isParentCategoryFilter,
+} from '../lib/category';
+import { loadLibraryFilters, saveLibraryFilters } from '../lib/libraryFilters';
 import { QRCard } from '../components/QRCard';
 import { ActionSheet } from '../components/ActionSheet';
 import { FullscreenQR } from '../components/FullscreenQR';
 import { SaveSheet, type SaveData } from '../components/SaveSheet';
-import { CategoryFormSheet } from '../components/CategoryFormSheet';
+import {
+  CategoryFormSheet,
+  type CategoryFormDefaults,
+  type CategoryFormResult,
+} from '../components/CategoryFormSheet';
 import { haptic } from '../lib/haptic';
 import { copyURL, shareURL } from '../lib/share';
 
@@ -26,34 +38,56 @@ export function LibraryScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [subFilter, setSubFilter] = useState<string | null>(null);
+  const [pendingSubcategory, setPendingSubcategory] = useState<string | undefined>();
+  const filtersRestored = useRef(false);
   const [actionSheetId, setActionSheetId] = useState<string | null>(null);
   const [fullscreenId, setFullscreenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saveSheetOpen, setSaveSheetOpen] = useState(false);
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
-  const [subParentId, setSubParentId] = useState<string | null>(null);
+  const [categoryFormDefaults, setCategoryFormDefaults] = useState<CategoryFormDefaults>({});
 
   const actionQR = actionSheetId ? qrcodes.find((q) => q.id === actionSheetId) ?? null : null;
   const fullscreenQR = fullscreenId ? qrcodes.find((q) => q.id === fullscreenId) ?? null : null;
   const editingQR = editingId ? qrcodes.find((q) => q.id === editingId) ?? null : null;
 
-  const parentCategories = categories.filter((c) => !c.parentId);
+  useEffect(() => {
+    if (filtersRestored.current || categories.length === 0) return;
+    const saved = loadLibraryFilters(categories);
+    setCategoryFilter(saved.categoryFilter);
+    setSubFilter(saved.subFilter);
+    filtersRestored.current = true;
+  }, [categories]);
 
-  const filteredQR = useMemo(() => {
-    return qrcodes
-      .filter((q) => {
-        if (categoryFilter !== 'all' && categoryFilter !== 'pinned' && q.categoryId !== categoryFilter) {
-          return false;
-        }
-        if (categoryFilter === 'pinned' && !q.isPinned) return false;
-        if (searchQuery) {
-          const q1 = searchQuery.toLowerCase();
-          return q.title.toLowerCase().includes(q1) || q.url.toLowerCase().includes(q1);
-        }
-        return true;
-      })
-      .sort((a, b) => b.createdAt - a.createdAt);
-  }, [qrcodes, categoryFilter, searchQuery]);
+  useEffect(() => {
+    if (!filtersRestored.current) return;
+    saveLibraryFilters({ categoryFilter, subFilter });
+  }, [categoryFilter, subFilter]);
+
+  const parentCategories = getParentCategories(categories);
+
+  const showSubChips = isParentCategoryFilter(categoryFilter, categories);
+
+  const subFilterChips = useMemo(
+    () => (showSubChips ? getSubFilterChips(categories, categoryFilter, qrcodes) : []),
+    [showSubChips, categories, categoryFilter, qrcodes],
+  );
+
+  const filteredQR = useMemo(
+    () =>
+      filterQRCodes(qrcodes, {
+        categoryFilter,
+        subFilter: showSubChips ? subFilter : undefined,
+        searchQuery,
+      }),
+    [qrcodes, categoryFilter, subFilter, searchQuery, showSubChips],
+  );
+
+  const handleCategoryFilterChange = (id: string) => {
+    setCategoryFilter(id);
+    setSubFilter(null);
+  };
 
   const pinnedQR = qrcodes.filter((q) => q.isPinned);
 
@@ -98,17 +132,20 @@ export function LibraryScreen() {
     showToast('更新しました');
   };
 
-  const handleAddCategory = async (name: string) => {
-    const parent = categories.find((c) => c.id === subParentId);
-    await addCategory({
+  const handleAddCategory = async ({ name, isSub, parentId }: CategoryFormResult) => {
+    const parent = parentId ? categories.find((c) => c.id === parentId) : undefined;
+    const added = await addCategory({
       name,
-      icon: parent?.icon ?? 'folder',
-      color: parent?.color ?? '#14b8a6',
-      parentId: subParentId ?? undefined,
+      icon: isSub ? (parent?.icon ?? 'folder') : 'folder',
+      color: isSub ? (parent?.color ?? '#14b8a6') : '#14b8a6',
+      parentId: isSub ? parentId : undefined,
     });
     setCategoryFormOpen(false);
-    setSubParentId(null);
-    showToast('カテゴリを追加しました');
+    setCategoryFormDefaults({});
+    if (isSub && parentId) {
+      setPendingSubcategory(added.name);
+    }
+    showToast(isSub ? 'サブカテゴリを追加しました' : 'カテゴリを追加しました');
   };
 
   return (
@@ -127,13 +164,27 @@ export function LibraryScreen() {
           <Search size={16} className="text-white/40 shrink-0" />
           <input
             className="flex-1 bg-transparent border-0 outline-none text-[#f5f5f7] text-sm font-inherit"
-            placeholder="名前またはURLで検索"
+            placeholder="名前・URL・カテゴリ・メモで検索"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <CategoryChips categories={categories} value={categoryFilter} onChange={setCategoryFilter} />
+        <CategoryChips
+          categories={categories}
+          value={categoryFilter}
+          onChange={handleCategoryFilterChange}
+        />
+
+        <AnimatePresence>
+          {showSubChips && (
+            <SubcategoryChips
+              chips={subFilterChips}
+              value={subFilter}
+              onChange={setSubFilter}
+            />
+          )}
+        </AnimatePresence>
 
         {categoryFilter === 'all' && !searchQuery && (
           <PinnedScroll
@@ -223,13 +274,15 @@ export function LibraryScreen() {
               setEditingId(null);
             }}
             onAddCategory={() => {
-              setSubParentId(null);
+              setCategoryFormDefaults({ isSub: false });
               setCategoryFormOpen(true);
             }}
             onAddSubcategory={(parentId) => {
-              setSubParentId(parentId);
+              setCategoryFormDefaults({ isSub: true, parentId });
               setCategoryFormOpen(true);
             }}
+            pendingSubcategory={pendingSubcategory}
+            onPendingSubcategoryConsumed={() => setPendingSubcategory(undefined)}
           />
         )}
       </AnimatePresence>
@@ -237,11 +290,12 @@ export function LibraryScreen() {
       <AnimatePresence>
         {categoryFormOpen && (
           <CategoryFormSheet
-            title={subParentId ? 'サブカテゴリを追加' : 'カテゴリを追加'}
+            categories={categories}
+            defaults={categoryFormDefaults}
             onSubmit={handleAddCategory}
             onClose={() => {
               setCategoryFormOpen(false);
-              setSubParentId(null);
+              setCategoryFormDefaults({});
             }}
           />
         )}

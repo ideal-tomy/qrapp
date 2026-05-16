@@ -22,6 +22,7 @@ interface AppState {
   addCategory: (cat: Omit<Category, 'id' | 'order'>) => Promise<Category>;
   updateCategory: (id: string, patch: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  reorderCategories: (orderedIds: string[], parentId?: string | null) => Promise<void>;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -102,13 +103,57 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateCategory: async (id, patch) => {
+    const cat = get().categories.find((c) => c.id === id);
+    const oldName = cat?.name;
+
     await db.categories.update(id, patch);
+
+    if (cat?.parentId && patch.name && oldName && patch.name !== oldName) {
+      const parentId = cat.parentId;
+      await db.qrcodes
+        .where('categoryId')
+        .equals(parentId)
+        .filter((q) => q.subcategory === oldName)
+        .modify({ subcategory: patch.name });
+    }
+
     set((s) => ({
       categories: s.categories.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+      qrcodes:
+        cat?.parentId && patch.name && oldName && patch.name !== oldName
+          ? s.qrcodes.map((q) =>
+              q.categoryId === cat.parentId && q.subcategory === oldName
+                ? { ...q, subcategory: patch.name }
+                : q,
+            )
+          : s.qrcodes,
     }));
   },
 
   deleteCategory: async (id) => {
+    const cat = get().categories.find((c) => c.id === id);
+    if (!cat) return;
+
+    if (cat.parentId) {
+      await db.transaction('rw', db.categories, db.qrcodes, async () => {
+        await db.categories.delete(id);
+        await db.qrcodes
+          .where('categoryId')
+          .equals(cat.parentId!)
+          .filter((q) => q.subcategory === cat.name)
+          .modify({ subcategory: undefined });
+      });
+      set((s) => ({
+        categories: s.categories.filter((c) => c.id !== id),
+        qrcodes: s.qrcodes.map((q) =>
+          q.categoryId === cat.parentId && q.subcategory === cat.name
+            ? { ...q, subcategory: undefined }
+            : q,
+        ),
+      }));
+      return;
+    }
+
     const subs = get().categories.filter((c) => c.parentId === id).map((c) => c.id);
     await db.transaction('rw', db.categories, db.qrcodes, async () => {
       await db.categories.bulkDelete([id, ...subs]);
@@ -125,8 +170,24 @@ export const useStore = create<AppState>((set, get) => ({
       qrcodes: s.qrcodes.map((q) =>
         q.categoryId === id || subs.includes(q.categoryId ?? '')
           ? { ...q, categoryId: undefined, subcategory: undefined }
-          : q
+          : q,
       ),
+    }));
+  },
+
+  reorderCategories: async (orderedIds, parentId = null) => {
+    await db.transaction('rw', db.categories, async () => {
+      for (let i = 0; i < orderedIds.length; i++) {
+        await db.categories.update(orderedIds[i], { order: i });
+      }
+    });
+    set((s) => ({
+      categories: s.categories.map((c) => {
+        const inGroup = parentId ? c.parentId === parentId : !c.parentId;
+        if (!inGroup) return c;
+        const idx = orderedIds.indexOf(c.id);
+        return idx >= 0 ? { ...c, order: idx } : c;
+      }),
     }));
   },
 }));

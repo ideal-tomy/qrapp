@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, type PanInfo } from 'framer-motion';
 import type { QRCode, Category } from '../types';
 import { CatIcon } from './CatIcon';
 import { haptic, HAPTIC } from '../lib/haptic';
 import { getDomain } from '../lib/qr';
+import { getParentCategories, getSubcategories } from '../lib/category';
 
 export interface SaveData {
   title: string;
@@ -21,6 +22,13 @@ interface SaveSheetProps {
   onClose: () => void;
   onAddCategory?: () => void;
   onAddSubcategory?: (parentId: string) => void;
+  pendingSubcategory?: string;
+  onPendingSubcategoryConsumed?: () => void;
+}
+
+function isMapsUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return lower.includes('maps.') || lower.includes('goo.gl');
 }
 
 export function SaveSheet({
@@ -31,6 +39,8 @@ export function SaveSheet({
   onClose,
   onAddCategory,
   onAddSubcategory,
+  pendingSubcategory,
+  onPendingSubcategoryConsumed,
 }: SaveSheetProps) {
   const [title, setTitle] = useState(
     () => editingQR?.title ?? (url ? getDomain(url) : ''),
@@ -39,8 +49,17 @@ export function SaveSheet({
   const [categoryId, setCategoryId] = useState<string | undefined>(editingQR?.categoryId);
   const [subcategory, setSubcategory] = useState<string | undefined>(editingQR?.subcategory);
 
-  const parentCategories = categories.filter((c) => !c.parentId);
-  const subs = categoryId ? categories.filter((c) => c.parentId === categoryId) : [];
+  const parentCategories = getParentCategories(categories);
+  const subs = categoryId ? getSubcategories(categories, categoryId) : [];
+  const selectedParent = parentCategories.find((c) => c.id === categoryId);
+  const mapsHint = !editingQR && url && isMapsUrl(url) && title === getDomain(url);
+
+  useEffect(() => {
+    if (pendingSubcategory) {
+      setSubcategory(pendingSubcategory);
+      onPendingSubcategoryConsumed?.();
+    }
+  }, [pendingSubcategory, onPendingSubcategoryConsumed]);
 
   const handleSubmit = () => {
     if (!title.trim()) return;
@@ -74,13 +93,13 @@ export function SaveSheet({
           if (info.offset.y > 120) onClose();
         }}
       >
-        <div className="sheet-handle" />
+        <motion.div className="sheet-handle" role="presentation" />
         <h3 className="text-lg font-bold m-0 mb-1">{editingQR ? 'QRを編集' : 'QRを保存'}</h3>
         <p className="text-xs text-white/55 m-0 mb-[18px]">
           {editingQR ? '内容を変更します' : 'タイトルとカテゴリを設定してください'}
         </p>
 
-        <div className="mb-3">
+        <motion.div className="mb-3">
           <label className="input-label">タイトル *</label>
           <input
             className="input"
@@ -88,12 +107,17 @@ export function SaveSheet({
             onChange={(e) => setTitle(e.target.value)}
             placeholder="例: 焼肉トラジ 銀座"
           />
-        </div>
+          {mapsHint && (
+            <p className="text-[11px] text-[#14b8a6]/90 mt-1.5 m-0">
+              Google Maps のURLです。店名・場所名を入力すると探しやすくなります
+            </p>
+          )}
+        </motion.div>
 
-        <div className="mb-[18px]">
+        <motion.div className="mb-[18px]">
           <label className="input-label">メモ (任意)</label>
           <input className="input" value={memo} onChange={(e) => setMemo(e.target.value)} />
-        </div>
+        </motion.div>
 
         <label className="input-label">カテゴリ</label>
         <div className="grid grid-cols-4 gap-2 mb-4">
@@ -114,18 +138,18 @@ export function SaveSheet({
                   : undefined
               }
             >
-              <div
+              <motion.div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ background: `${cat.color}33` }}
               >
                 <CatIcon name={cat.icon} size={16} color={cat.color} />
-              </div>
-              <div
+              </motion.div>
+              <motion.div
                 className="text-[10px]"
                 style={{ color: categoryId === cat.id ? '#fff' : 'rgba(255,255,255,0.6)' }}
               >
                 {cat.name}
-              </div>
+              </motion.div>
             </motion.button>
           ))}
           <motion.button
@@ -138,16 +162,16 @@ export function SaveSheet({
             }}
           >
             <Plus size={16} color="rgba(255,255,255,0.5)" />
-            <div className="text-[10px] text-white/50">追加</div>
+            <motion.div className="text-[10px] text-white/50">追加</motion.div>
           </motion.button>
         </div>
 
-        {subs.length > 0 && categoryId && (
+        {categoryId && (
           <>
             <label className="input-label">
-              サブカテゴリ ({parentCategories.find((c) => c.id === categoryId)?.name})
+              サブカテゴリ（任意）{selectedParent ? ` · ${selectedParent.name}` : ''}
             </label>
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar mb-5 pb-1">
+            <motion.div className="flex gap-1.5 overflow-x-auto no-scrollbar mb-5 pb-1">
               {subs.map((sub) => (
                 <motion.button
                   key={sub.id}
@@ -165,15 +189,15 @@ export function SaveSheet({
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.92 }}
-                className="chip"
+                className="chip border-dashed"
                 onClick={() => {
                   haptic(HAPTIC.light);
                   onAddSubcategory?.(categoryId);
                 }}
               >
-                + 追加
+                その他…
               </motion.button>
-            </div>
+            </motion.div>
           </>
         )}
 

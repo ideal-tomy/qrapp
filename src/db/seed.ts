@@ -18,6 +18,7 @@ const DEFAULT_SUBCATEGORIES: Category[] = [
   { id: 'food-chinese', parentId: 'food', name: '中華', icon: 'food', color: '#ec4899', order: 3 },
   { id: 'food-yakiniku', parentId: 'food', name: '焼肉', icon: 'food', color: '#ec4899', order: 4 },
   { id: 'food-cafe', parentId: 'food', name: 'カフェ', icon: 'food', color: '#ec4899', order: 5 },
+  { id: 'food-ramen', parentId: 'food', name: 'ラーメン', icon: 'food', color: '#ec4899', order: 6 },
   { id: 'work-client', parentId: 'work', name: 'クライアント', icon: 'briefcase', color: '#f59e0b', order: 0 },
   { id: 'work-internal', parentId: 'work', name: '社内', icon: 'briefcase', color: '#f59e0b', order: 1 },
   { id: 'work-doc', parentId: 'work', name: '資料', icon: 'briefcase', color: '#f59e0b', order: 2 },

@@ -11,6 +11,16 @@ interface QRCardProps {
   onMenu: () => void;
 }
 
+function formatCreatedAt(ts: number): string {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const now = new Date();
+  if (y === now.getFullYear()) return `${m}/${day}`;
+  return `${y}/${m}/${day}`;
+}
+
 export function QRCard({ qr, category, onOpen, onMenu }: QRCardProps) {
   return (
     <motion.div
@@ -38,6 +48,7 @@ export function QRCard({ qr, category, onOpen, onMenu }: QRCardProps) {
         </div>
         <p className="text-[11px] text-white/50 truncate mb-1 m-0">
           {qr.url.replace(/^https?:\/\//, '')}
+          <span className="text-white/30"> · {formatCreatedAt(qr.createdAt)}</span>
         </p>
         {category && (
           <span

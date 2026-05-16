@@ -8,7 +8,11 @@ import { useStore } from '../store/useStore';
 import { QRImage } from '../components/QRImage';
 import { SaveSheet, type SaveData } from '../components/SaveSheet';
 import { SuccessFlash } from '../components/SuccessFlash';
-import { CategoryFormSheet } from '../components/CategoryFormSheet';
+import {
+  CategoryFormSheet,
+  type CategoryFormDefaults,
+  type CategoryFormResult,
+} from '../components/CategoryFormSheet';
 
 export function GenerateScreen() {
   const { categories, addQR, updateQR, setActiveTab, showToast, addCategory } = useStore();
@@ -18,7 +22,8 @@ export function GenerateScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successFlash, setSuccessFlash] = useState(false);
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
-  const [subParentId, setSubParentId] = useState<string | null>(null);
+  const [categoryFormDefaults, setCategoryFormDefaults] = useState<CategoryFormDefaults>({});
+  const [pendingSubcategory, setPendingSubcategory] = useState<string | undefined>();
 
   const editingQR = editingId ? useStore.getState().qrcodes.find((q) => q.id === editingId) ?? null : null;
 
@@ -77,17 +82,20 @@ export function GenerateScreen() {
     }, 1000);
   };
 
-  const handleAddCategory = async (name: string) => {
-    const parent = categories.find((c) => c.id === subParentId);
-    await addCategory({
+  const handleAddCategory = async ({ name, isSub, parentId }: CategoryFormResult) => {
+    const parent = parentId ? categories.find((c) => c.id === parentId) : undefined;
+    const added = await addCategory({
       name,
-      icon: parent?.icon ?? 'folder',
-      color: parent?.color ?? '#14b8a6',
-      parentId: subParentId ?? undefined,
+      icon: isSub ? (parent?.icon ?? 'folder') : 'folder',
+      color: isSub ? (parent?.color ?? '#14b8a6') : '#14b8a6',
+      parentId: isSub ? parentId : undefined,
     });
     setCategoryFormOpen(false);
-    setSubParentId(null);
-    showToast('カテゴリを追加しました');
+    setCategoryFormDefaults({});
+    if (isSub && parentId) {
+      setPendingSubcategory(added.name);
+    }
+    showToast(isSub ? 'サブカテゴリを追加しました' : 'カテゴリを追加しました');
   };
 
   return (
@@ -191,13 +199,15 @@ export function GenerateScreen() {
               setEditingId(null);
             }}
             onAddCategory={() => {
-              setSubParentId(null);
+              setCategoryFormDefaults({ isSub: false });
               setCategoryFormOpen(true);
             }}
             onAddSubcategory={(parentId) => {
-              setSubParentId(parentId);
+              setCategoryFormDefaults({ isSub: true, parentId });
               setCategoryFormOpen(true);
             }}
+            pendingSubcategory={pendingSubcategory}
+            onPendingSubcategoryConsumed={() => setPendingSubcategory(undefined)}
           />
         )}
       </AnimatePresence>
@@ -205,12 +215,12 @@ export function GenerateScreen() {
       <AnimatePresence>
         {categoryFormOpen && (
           <CategoryFormSheet
-            title={subParentId ? 'サブカテゴリを追加' : 'カテゴリを追加'}
-            placeholder={subParentId ? '例: 和食' : '例: 仕事'}
+            categories={categories}
+            defaults={categoryFormDefaults}
             onSubmit={handleAddCategory}
             onClose={() => {
               setCategoryFormOpen(false);
-              setSubParentId(null);
+              setCategoryFormDefaults({});
             }}
           />
         )}
