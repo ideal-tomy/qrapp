@@ -6,10 +6,12 @@ import { CatIcon } from './CatIcon';
 import { haptic, HAPTIC } from '../lib/haptic';
 import { getDomain } from '../lib/qr';
 import { getParentCategories, getSubcategories } from '../lib/category';
+import { PREFECTURES, categoryNeedsPrefecture } from '../lib/prefecture';
 
 export interface SaveData {
   title: string;
   memo?: string;
+  prefecture?: string;
   categoryId?: string;
   subcategory?: string;
 }
@@ -46,12 +48,14 @@ export function SaveSheet({
     () => editingQR?.title ?? (url ? getDomain(url) : ''),
   );
   const [memo, setMemo] = useState(editingQR?.memo ?? '');
+  const [prefecture, setPrefecture] = useState(editingQR?.prefecture ?? '');
   const [categoryId, setCategoryId] = useState<string | undefined>(editingQR?.categoryId);
   const [subcategory, setSubcategory] = useState<string | undefined>(editingQR?.subcategory);
 
   const parentCategories = getParentCategories(categories);
   const subs = categoryId ? getSubcategories(categories, categoryId) : [];
   const selectedParent = parentCategories.find((c) => c.id === categoryId);
+  const showPrefecture = categoryNeedsPrefecture(selectedParent);
   const mapsHint = !editingQR && url && isMapsUrl(url) && title === getDomain(url);
 
   useEffect(() => {
@@ -66,6 +70,7 @@ export function SaveSheet({
     onSave({
       title: title.trim(),
       memo: memo.trim() || undefined,
+      prefecture: showPrefecture && prefecture ? prefecture : undefined,
       categoryId,
       subcategory,
     });
@@ -80,7 +85,7 @@ export function SaveSheet({
       onClick={onClose}
     >
       <motion.div
-        className="sheet"
+        className="sheet max-h-[90vh] overflow-y-auto no-scrollbar"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -115,8 +120,14 @@ export function SaveSheet({
         </motion.div>
 
         <motion.div className="mb-[18px]">
-          <label className="input-label">メモ (任意)</label>
-          <input className="input" value={memo} onChange={(e) => setMemo(e.target.value)} />
+          <label className="input-label">特徴・特記事項 (任意)</label>
+          <textarea
+            className="input min-h-[72px] resize-y leading-relaxed"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="例: 予約必須、駐車場あり、混雑しやすい など"
+            rows={3}
+          />
         </motion.div>
 
         <label className="input-label">カテゴリ</label>
@@ -130,6 +141,9 @@ export function SaveSheet({
               onClick={() => {
                 setCategoryId(cat.id);
                 setSubcategory(undefined);
+                if (!categoryNeedsPrefecture(cat)) {
+                  setPrefecture('');
+                }
                 haptic(HAPTIC.light);
               }}
               style={
@@ -165,6 +179,24 @@ export function SaveSheet({
             <motion.div className="text-[10px] text-white/50">追加</motion.div>
           </motion.button>
         </div>
+
+        {showPrefecture && (
+          <motion.div className="mb-4">
+            <label className="input-label">都道府県 (任意)</label>
+            <select
+              className="input appearance-none cursor-pointer"
+              value={prefecture}
+              onChange={(e) => setPrefecture(e.target.value)}
+            >
+              <option value="">選択してください</option>
+              {PREFECTURES.map((pref) => (
+                <option key={pref} value={pref}>
+                  {pref}
+                </option>
+              ))}
+            </select>
+          </motion.div>
+        )}
 
         {categoryId && (
           <>

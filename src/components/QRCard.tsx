@@ -47,15 +47,25 @@ export function QRCard({ qr, category, onPress }: QRCardProps) {
           {qr.url.replace(/^https?:\/\//, '')}
           <span className="text-white/30"> · {formatCreatedAt(qr.createdAt)}</span>
         </p>
-        {category && (
-          <span
-            className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] font-medium"
-            style={{ color: category.color }}
-          >
-            {category.name}
-            {qr.subcategory ? ` / ${qr.subcategory}` : ''}
-          </span>
+        {qr.memo && (
+          <p className="text-[11px] text-white/45 truncate mb-1 m-0">{qr.memo}</p>
         )}
+        <div className="flex flex-wrap items-center gap-1">
+          {category && (
+            <span
+              className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] font-medium"
+              style={{ color: category.color }}
+            >
+              {category.name}
+              {qr.subcategory ? ` / ${qr.subcategory}` : ''}
+            </span>
+          )}
+          {qr.prefecture && (
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#14b8a6]/15 text-[#14b8a6] font-medium">
+              {qr.prefecture}
+            </span>
+          )}
+        </div>
       </div>
     </motion.div>
   );
