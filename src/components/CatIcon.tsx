@@ -7,6 +7,8 @@ import {
   BookOpen,
   User,
   FolderOpen,
+  Landmark,
+  TreePine,
 } from 'lucide-react';
 import type { IconName } from '../types';
 
@@ -19,6 +21,8 @@ const ICON_MAP: Record<IconName, typeof Briefcase> = {
   book: BookOpen,
   user: User,
   folder: FolderOpen,
+  shrine: Landmark,
+  nature: TreePine,
 };
 
 interface CatIconProps {

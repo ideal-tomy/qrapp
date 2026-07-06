@@ -179,7 +179,7 @@ export function LibraryScreen() {
           <Search size={16} className="text-white/40 shrink-0" />
           <input
             className="flex-1 bg-transparent border-0 outline-none text-[#f5f5f7] text-sm font-inherit"
-            placeholder="名前・URL・カテゴリ・メモで検索"
+            placeholder="名前・URL・カテゴリ・都道府県・メモで検索"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -257,6 +257,11 @@ export function LibraryScreen() {
             }}
             onShare={async () => {
               await handleShare(actionQR.url, actionQR.title);
+              setActionSheetId(null);
+            }}
+            onOpenURL={() => {
+              haptic(10);
+              window.open(actionQR.url, '_blank');
               setActionSheetId(null);
             }}
           />

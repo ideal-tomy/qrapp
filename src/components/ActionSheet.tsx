@@ -1,4 +1,4 @@
-import { Copy, Share2, Star, Edit3, Trash2, Maximize2 } from 'lucide-react';
+import { Copy, Share2, Star, Edit3, Trash2, Maximize2, ExternalLink } from 'lucide-react';
 import { motion, type PanInfo } from 'framer-motion';
 import type { QRCode } from '../types';
 import { QRImage } from './QRImage';
@@ -7,6 +7,7 @@ interface ActionSheetProps {
   qr: QRCode | null;
   onClose: () => void;
   onOpenQR: () => void;
+  onOpenURL: () => void;
   onTogglePin: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -18,6 +19,7 @@ export function ActionSheet({
   qr,
   onClose,
   onOpenQR,
+  onOpenURL,
   onTogglePin,
   onEdit,
   onDelete,
@@ -28,6 +30,7 @@ export function ActionSheet({
 
   const items = [
     { icon: Maximize2, label: 'QRを表示', onClick: onOpenQR },
+    { icon: ExternalLink, label: 'URLを開く', onClick: onOpenURL },
     { icon: Copy, label: 'URLをコピー', onClick: onCopy },
     { icon: Share2, label: 'シェア', onClick: onShare },
     {
@@ -64,13 +67,21 @@ export function ActionSheet({
       >
         <div className="sheet-handle" />
 
-        <div className="flex gap-3 items-center mb-[18px]">
+        <div className="flex gap-3 items-start mb-[18px]">
           <QRImage value={qr.url} size={50} />
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-semibold mb-0.5 m-0">{qr.title}</p>
             <p className="text-[11px] text-white/50 truncate m-0">
               {qr.url.replace(/^https?:\/\//, '')}
             </p>
+            {qr.prefecture && (
+              <p className="text-[11px] text-[#14b8a6]/90 mt-1 m-0">{qr.prefecture}</p>
+            )}
+            {qr.memo && (
+              <p className="text-[11px] text-white/60 mt-1.5 m-0 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                {qr.memo}
+              </p>
+            )}
           </div>
         </div>
 

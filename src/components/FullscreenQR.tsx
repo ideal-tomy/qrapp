@@ -47,6 +47,14 @@ export function FullscreenQR({ qr, category, onClose, onCopy, onShare }: Fullscr
       >
         <p className="text-lg font-semibold mb-1 m-0">{qr.title}</p>
         <p className="text-xs text-white/50 break-all mb-2 m-0">{qr.url}</p>
+        {qr.prefecture && (
+          <p className="text-xs text-[#14b8a6]/90 mb-2 m-0">{qr.prefecture}</p>
+        )}
+        {qr.memo && (
+          <p className="text-xs text-white/60 mb-2 m-0 leading-relaxed whitespace-pre-wrap text-left bg-white/[0.04] rounded-xl px-3 py-2">
+            {qr.memo}
+          </p>
+        )}
         {category && (
           <span
             className="inline-block text-[11px] px-3 py-1 rounded-full font-medium"

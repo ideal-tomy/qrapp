@@ -3,6 +3,7 @@ export interface QRCode {
   title: string;
   url: string;
   memo?: string;
+  prefecture?: string;
   categoryId?: string;
   subcategory?: string;
   isPinned: boolean;
@@ -28,4 +29,6 @@ export type IconName =
   | 'plane'
   | 'book'
   | 'user'
-  | 'folder';
+  | 'folder'
+  | 'shrine'
+  | 'nature';

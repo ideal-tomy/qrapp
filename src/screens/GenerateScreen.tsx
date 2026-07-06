@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { QrCode, Clipboard, Copy, Share2, Bookmark } from 'lucide-react';
+import { QrCode, Clipboard, Copy, Share2, Bookmark, ExternalLink } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { normalizeURL } from '../lib/qr';
 import { haptic, HAPTIC } from '../lib/haptic';
@@ -152,7 +152,7 @@ export function GenerateScreen() {
                 <QRImage value={generatedUrl} size={180} layoutId="preview-qr" />
               </div>
               <p className="text-xs text-white/60 mb-3.5 break-all px-3 m-0">{generatedUrl}</p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap justify-center">
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.95 }}
@@ -168,6 +168,17 @@ export function GenerateScreen() {
                   className="btn-ghost"
                 >
                   <Share2 size={14} /> シェア
+                </motion.button>
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    haptic(HAPTIC.light);
+                    window.open(generatedUrl, '_blank');
+                  }}
+                  className="btn-ghost"
+                >
+                  <ExternalLink size={14} /> 開く
                 </motion.button>
                 <motion.button
                   type="button"

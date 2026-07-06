@@ -52,7 +52,7 @@ export function getSubFilterChips(
 export function matchesSearch(qr: QRCode, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const fields = [qr.title, qr.url, qr.subcategory, qr.memo].filter(Boolean) as string[];
+  const fields = [qr.title, qr.url, qr.subcategory, qr.memo, qr.prefecture].filter(Boolean) as string[];
   return fields.some((f) => f.toLowerCase().includes(q));
 }
 
